@@ -4,7 +4,7 @@ import 'package:deepfake_ai/core/theme/text_styles.dart';
 import 'package:deepfake_ai/features/status_states/presentation/empty_error_screens.dart';
 
 class NotificationsScreen extends StatefulWidget {
-  const NotificationsScreen({Key? key}) : super(key: key);
+  const NotificationsScreen({super.key});
 
   @override
   State<NotificationsScreen> createState() => _NotificationsScreenState();
@@ -85,7 +85,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: AppColors.neonPink.withOpacity(0.1),
+                      color: AppColors.neonPink.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Text(
@@ -143,7 +143,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             height: 42,
             width: 42,
             decoration: BoxDecoration(
-              color: item.color.withOpacity(0.1),
+              color: item.color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(item.icon, color: item.color, size: 20),
@@ -169,7 +169,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     Text(
                       item.timestamp,
                       style: AppTextStyles.getLabelSmall(isDark).copyWith(
-                        color: AppColors.textSecondary(isDark).withOpacity(0.5),
+                        color: AppColors.textSecondary(isDark).withValues(alpha: 0.5),
                       ),
                     ),
                   ],

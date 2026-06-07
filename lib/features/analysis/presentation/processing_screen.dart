@@ -2,14 +2,13 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:math';
 import 'package:deepfake_ai/core/constants/app_colors.dart';
-import 'package:deepfake_ai/core/constants/app_assets.dart';
 import 'package:deepfake_ai/core/theme/text_styles.dart';
 import 'package:deepfake_ai/features/analysis/presentation/result_screen.dart';
 
 class ProcessingScreen extends StatefulWidget {
   final int mediaType; // 0 = Image, 1 = Video, 2 = Audio
 
-  const ProcessingScreen({Key? key, required this.mediaType}) : super(key: key);
+  const ProcessingScreen({super.key, required this.mediaType});
 
   @override
   State<ProcessingScreen> createState() => _ProcessingScreenState();
@@ -248,7 +247,7 @@ class _ProcessingScreenState extends State<ProcessingScreen> with SingleTickerPr
       iconColor = AppColors.neonBlue;
     } else {
       icon = Icons.radio_button_off_rounded;
-      iconColor = AppColors.textSecondary(isDark).withOpacity(0.4);
+      iconColor = AppColors.textSecondary(isDark).withValues(alpha: 0.4);
     }
 
     return Padding(
@@ -262,7 +261,7 @@ class _ProcessingScreenState extends State<ProcessingScreen> with SingleTickerPr
             style: TextStyle(
               color: isCompleted 
                   ? AppColors.textPrimary(isDark) 
-                  : (isCurrent ? AppColors.neonBlue : AppColors.textSecondary(isDark).withOpacity(0.5)),
+                  : (isCurrent ? AppColors.neonBlue : AppColors.textSecondary(isDark).withValues(alpha: 0.5)),
               fontSize: 14,
               fontWeight: isCurrent || isCompleted ? FontWeight.w600 : FontWeight.normal,
             ),
@@ -311,7 +310,7 @@ class ScannerVisualizerPainter extends CustomPainter {
 
     // Glowing laser dust particles
     final glowPaint = Paint()
-      ..color = AppColors.neonBlue.withOpacity(0.12)
+      ..color = AppColors.neonBlue.withValues(alpha: 0.12)
       ..style = PaintingStyle.fill
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12);
     canvas.drawRect(Rect.fromLTRB(0, laserY - 14, size.width, laserY + 14), glowPaint);
@@ -319,7 +318,7 @@ class ScannerVisualizerPainter extends CustomPainter {
 
   void _paintFaceScan(Canvas canvas, Size size, Offset center) {
     final facePaint = Paint()
-      ..color = AppColors.neonBlue.withOpacity(0.2)
+      ..color = AppColors.neonBlue.withValues(alpha: 0.2)
       ..strokeWidth = 1
       ..style = PaintingStyle.stroke;
 
@@ -349,7 +348,7 @@ class ScannerVisualizerPainter extends CustomPainter {
     path.close();
 
     final outlinePaint = Paint()
-      ..color = AppColors.neonBlue.withOpacity(0.8)
+      ..color = AppColors.neonBlue.withValues(alpha: 0.8)
       ..strokeWidth = 2
       ..style = PaintingStyle.stroke;
     canvas.drawPath(path, outlinePaint);
@@ -383,7 +382,7 @@ class ScannerVisualizerPainter extends CustomPainter {
 
     // Small square sprocket holes at top and bottom of film reel
     final sprocketPaint = Paint()
-      ..color = AppColors.textSecondary(isDark).withOpacity(0.3)
+      ..color = AppColors.textSecondary(isDark).withValues(alpha: 0.3)
       ..style = PaintingStyle.fill;
 
     for (double x = 10; x < size.width; x += 25) {
@@ -393,7 +392,7 @@ class ScannerVisualizerPainter extends CustomPainter {
 
     // Overlapping checking lens
     final checkLens = Paint()
-      ..color = AppColors.neonPink.withOpacity(0.1)
+      ..color = AppColors.neonPink.withValues(alpha: 0.1)
       ..style = PaintingStyle.fill;
     
     final checkLensStroke = Paint()
@@ -410,7 +409,7 @@ class ScannerVisualizerPainter extends CustomPainter {
 
     // Dynamic grid overlay inside the active checking frame
     final gridPaint = Paint()
-      ..color = AppColors.neonPink.withOpacity(0.3)
+      ..color = AppColors.neonPink.withValues(alpha: 0.3)
       ..strokeWidth = 1;
     
     canvas.drawLine(Offset(shiftX + 36, topY + 20), Offset(shiftX + 36, bottomY - 20), gridPaint);

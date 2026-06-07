@@ -3,9 +3,14 @@ import 'dart:async';
 import 'package:deepfake_ai/core/constants/app_colors.dart';
 import 'package:deepfake_ai/core/theme/text_styles.dart';
 import 'package:deepfake_ai/features/splash_onboarding/presentation/onboarding_screen.dart';
+import 'package:deepfake_ai/features/auth/presentation/login_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:deepfake_ai/providers/auth_provider.dart';
+import 'package:deepfake_ai/main.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({Key? key}) : super(key: key);
+  const SplashScreen({super.key});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -39,16 +44,39 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     });
   }
 
-  void _navigateToNext() {
-    Navigator.of(context).pushReplacement(
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => const OnboardingScreen(),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(opacity: animation, child: child);
-        },
-        transitionDuration: const Duration(milliseconds: 600),
-      ),
-    );
+  Future<void> _navigateToNext() async {
+    final auth = context.read<AuthProvider>();
+    
+    // Check if session has expired
+    await auth.checkSessionExpiry();
+
+    final prefs = await SharedPreferences.getInstance();
+    final hasSeenOnboarding = prefs.getBool('has_seen_onboarding') ?? false;
+
+    if (!mounted) return;
+
+    if (auth.isAuthenticated) {
+      Navigator.of(context).pushReplacement(
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => const MainAppContainer(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+          transitionDuration: const Duration(milliseconds: 600),
+        ),
+      );
+    } else {
+      Navigator.of(context).pushReplacement(
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => 
+              hasSeenOnboarding ? const LoginScreen() : const OnboardingScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+          transitionDuration: const Duration(milliseconds: 600),
+        ),
+      );
+    }
   }
 
   @override
@@ -81,7 +109,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        AppColors.neonBlue.withOpacity(isDark ? 0.25 : 0.08),
+                        AppColors.neonBlue.withValues(alpha: isDark ? 0.25 : 0.08),
                         Colors.transparent,
                       ],
                     ),
@@ -98,7 +126,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        AppColors.neonPink.withOpacity(isDark ? 0.25 : 0.08),
+                        AppColors.neonPink.withValues(alpha: isDark ? 0.25 : 0.08),
                         Colors.transparent,
                       ],
                     ),
@@ -128,7 +156,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                         letterSpacing: 1.5,
                         shadows: [
                           Shadow(
-                            color: AppColors.neonBlue.withOpacity(0.5),
+                            color: AppColors.neonBlue.withValues(alpha: 0.5),
                             blurRadius: 10,
                           ),
                         ],
@@ -138,7 +166,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     Text(
                       "AI-Powered Deepfake Detection",
                       style: AppTextStyles.getBodyMedium(isDark).copyWith(
-                        color: AppColors.textSecondary(isDark).withOpacity(0.8),
+                        color: AppColors.textSecondary(isDark).withValues(alpha: 0.8),
                         letterSpacing: 0.5,
                       ),
                     ),
@@ -171,7 +199,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                                 borderRadius: BorderRadius.circular(10),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppColors.neonBlue.withOpacity(0.4),
+                                    color: AppColors.neonBlue.withValues(alpha: 0.4),
                                     blurRadius: 6,
                                     offset: const Offset(0, 1),
                                   ),
@@ -186,7 +214,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     Text(
                       "Loading...",
                       style: AppTextStyles.getLabelSmall(isDark).copyWith(
-                        color: AppColors.textSecondary(isDark).withOpacity(0.6),
+                        color: AppColors.textSecondary(isDark).withValues(alpha: 0.6),
                       ),
                     ),
                   ],
@@ -212,14 +240,14 @@ class LogoGlowPainter extends CustomPainter {
 
     // Glowing Neon Blue aura
     final auraPaint = Paint()
-      ..color = AppColors.neonBlue.withOpacity(isDark ? 0.25 : 0.1)
+      ..color = AppColors.neonBlue.withValues(alpha: isDark ? 0.25 : 0.1)
       ..style = PaintingStyle.fill
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 25);
     canvas.drawCircle(center, radius - 10, auraPaint);
 
     // Glowing Pink outer boundary glow
     final neonPinkPaint = Paint()
-      ..color = AppColors.neonPink.withOpacity(isDark ? 0.2 : 0.08)
+      ..color = AppColors.neonPink.withValues(alpha: isDark ? 0.2 : 0.08)
       ..style = PaintingStyle.fill
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 15);
     canvas.drawCircle(center, radius - 20, neonPinkPaint);

@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:deepfake_ai/core/constants/app_colors.dart';
 import 'package:deepfake_ai/core/theme/text_styles.dart';
 import 'package:deepfake_ai/features/auth/presentation/login_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class OnboardingScreen extends StatefulWidget {
-  const OnboardingScreen({Key? key}) : super(key: key);
+  const OnboardingScreen({super.key});
 
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
@@ -43,7 +44,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
   }
 
-  void _navigateToLogin() {
+  Future<void> _navigateToLogin() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('has_seen_onboarding', true);
+
+    if (!mounted) return;
+
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
@@ -131,7 +137,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       child: Text(
                         "Skip",
                         style: TextStyle(
-                          color: AppColors.textSecondary(isDark).withOpacity(0.8),
+                          color: AppColors.textSecondary(isDark).withValues(alpha: 0.8),
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
                         ),
@@ -156,7 +162,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           borderRadius: BorderRadius.circular(14),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.neonBlue.withOpacity(0.3),
+                              color: AppColors.neonBlue.withValues(alpha: 0.3),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -223,7 +229,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           Text(
             "0${_currentPage + 1}",
             style: TextStyle(
-              color: AppColors.neonBlue.withOpacity(0.8),
+              color: AppColors.neonBlue.withValues(alpha: 0.8),
               fontSize: 18,
               fontWeight: FontWeight.w900,
               letterSpacing: 2.0,
@@ -285,7 +291,7 @@ class OnboardingIllustrationPainter extends CustomPainter {
 
     // Glowing background aura
     final auraPaint = Paint()
-      ..color = AppColors.neonBlue.withOpacity(isDark ? 0.08 : 0.03)
+      ..color = AppColors.neonBlue.withValues(alpha: isDark ? 0.08 : 0.03)
       ..style = PaintingStyle.fill
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 30);
     canvas.drawCircle(center, radius + 20, auraPaint);
@@ -302,7 +308,7 @@ class OnboardingIllustrationPainter extends CustomPainter {
   void _drawFaceScan(Canvas canvas, Size size, Offset center, double radius) {
     // Background rings
     final ringPaint = Paint()
-      ..color = AppColors.neonBlue.withOpacity(0.2)
+      ..color = AppColors.neonBlue.withValues(alpha: 0.2)
       ..strokeWidth = 1
       ..style = PaintingStyle.stroke;
     canvas.drawCircle(center, radius - 10, ringPaint);
@@ -314,7 +320,7 @@ class OnboardingIllustrationPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
     
     final linePaint = Paint()
-      ..color = AppColors.neonBlue.withOpacity(0.5)
+      ..color = AppColors.neonBlue.withValues(alpha: 0.5)
       ..strokeWidth = 1.5
       ..style = PaintingStyle.stroke;
 
@@ -350,12 +356,12 @@ class OnboardingIllustrationPainter extends CustomPainter {
     // Draw scanning grid nodes
     for (var pt in nodePoints) {
       canvas.drawCircle(pt, 4, nodePaint);
-      canvas.drawCircle(pt, 8, Paint()..color = AppColors.neonBlue.withOpacity(0.2)..style = PaintingStyle.stroke);
+      canvas.drawCircle(pt, 8, Paint()..color = AppColors.neonBlue.withValues(alpha: 0.2)..style = PaintingStyle.stroke);
     }
 
     // Floating radar sweeps
     final radarPaint = Paint()
-      ..color = AppColors.neonPink.withOpacity(0.3)
+      ..color = AppColors.neonPink.withValues(alpha: 0.3)
       ..strokeWidth = 2
       ..style = PaintingStyle.stroke;
     canvas.drawArc(
@@ -379,7 +385,7 @@ class OnboardingIllustrationPainter extends CustomPainter {
     path1.close();
 
     final fillPaint = Paint()
-      ..color = AppColors.neonBlue.withOpacity(0.12)
+      ..color = AppColors.neonBlue.withValues(alpha: 0.12)
       ..style = PaintingStyle.fill;
     
     final strokePaint = Paint()
@@ -392,7 +398,7 @@ class OnboardingIllustrationPainter extends CustomPainter {
 
     // Draw floating widgets (Video / Audio emblems)
     final circlePaint = Paint()
-      ..color = AppColors.neonPink.withOpacity(0.2)
+      ..color = AppColors.neonPink.withValues(alpha: 0.2)
       ..style = PaintingStyle.fill;
     
     final circleStroke = Paint()
@@ -414,7 +420,7 @@ class OnboardingIllustrationPainter extends CustomPainter {
 
     // Audio soundwave indicator inside folder
     final soundWaveCenter = Offset(center.dx + 30, center.dy + 10);
-    canvas.drawCircle(soundWaveCenter, 20, Paint()..color = AppColors.neonBlue.withOpacity(0.2)..style = PaintingStyle.fill);
+    canvas.drawCircle(soundWaveCenter, 20, Paint()..color = AppColors.neonBlue.withValues(alpha: 0.2)..style = PaintingStyle.fill);
     canvas.drawCircle(soundWaveCenter, 20, Paint()..color = AppColors.neonBlue..strokeWidth = 1.5..style = PaintingStyle.stroke);
 
     final audioPaint = Paint()
@@ -438,7 +444,7 @@ class OnboardingIllustrationPainter extends CustomPainter {
     shieldPath.close();
 
     final fillPaint = Paint()
-      ..color = AppColors.electricViolet.withOpacity(0.12)
+      ..color = AppColors.electricViolet.withValues(alpha: 0.12)
       ..style = PaintingStyle.fill;
     
     final strokePaint = Paint()

@@ -9,13 +9,13 @@ class CustomTextField extends StatefulWidget {
   final TextInputType keyboardType;
 
   const CustomTextField({
-    Key? key,
+    super.key,
     required this.hintText,
     required this.prefixIcon,
     this.isPassword = false,
     this.controller,
     this.keyboardType = TextInputType.text,
-  }) : super(key: key);
+  });
 
   @override
   State<CustomTextField> createState() => _CustomTextFieldState();
@@ -35,7 +35,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
         boxShadow: [
           // Subtle inner shadow simulation
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.25 : 0.05),
+            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
             spreadRadius: -1,
@@ -51,14 +51,14 @@ class _CustomTextFieldState extends State<CustomTextField> {
           hintText: widget.hintText,
           prefixIcon: Icon(
             widget.prefixIcon,
-            color: AppColors.textSecondary(isDark).withOpacity(0.7),
+            color: AppColors.textSecondary(isDark).withValues(alpha: 0.7),
             size: 20,
           ),
           suffixIcon: widget.isPassword
               ? IconButton(
                   icon: Icon(
                     _obscureText ? Icons.visibility_off : Icons.visibility,
-                    color: AppColors.textSecondary(isDark).withOpacity(0.7),
+                    color: AppColors.textSecondary(isDark).withValues(alpha: 0.7),
                     size: 20,
                   ),
                   onPressed: () {

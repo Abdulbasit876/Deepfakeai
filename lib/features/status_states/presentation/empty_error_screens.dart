@@ -7,10 +7,10 @@ class EmptyErrorScreens extends StatelessWidget {
   final VoidCallback? onActionTap;
 
   const EmptyErrorScreens({
-    Key? key,
+    super.key,
     required this.stateIndex,
     this.onActionTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -61,12 +61,12 @@ class EmptyErrorScreens extends StatelessWidget {
               height: 100,
               width: 100,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.08),
+                color: color.withValues(alpha: 0.08),
                 shape: BoxShape.circle,
-                border: Border.all(color: color.withOpacity(0.3), width: 1.5),
+                border: Border.all(color: color.withValues(alpha: 0.3), width: 1.5),
                 boxShadow: [
                   BoxShadow(
-                    color: color.withOpacity(0.12),
+                    color: color.withValues(alpha: 0.12),
                     blurRadius: 20,
                     spreadRadius: 2,
                   ),
@@ -95,7 +95,7 @@ class EmptyErrorScreens extends StatelessWidget {
               description,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: AppColors.textSecondary(isDark).withOpacity(0.7),
+                color: AppColors.textSecondary(isDark).withValues(alpha: 0.7),
                 fontSize: 13,
                 height: 1.5,
               ),
@@ -109,9 +109,9 @@ class EmptyErrorScreens extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.12),
+                    color: color.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: color.withOpacity(0.3)),
+                    border: Border.all(color: color.withValues(alpha: 0.3)),
                   ),
                   child: Text(
                     buttonText,

@@ -4,9 +4,30 @@ import 'package:deepfake_ai/core/theme/text_styles.dart';
 import 'package:deepfake_ai/shared/widgets/custom_button.dart';
 import 'package:deepfake_ai/shared/widgets/custom_textfield.dart';
 import 'package:deepfake_ai/main.dart'; // Navigation context
+import 'package:provider/provider.dart';
+import 'package:deepfake_ai/providers/auth_provider.dart';
 
-class SignupScreen extends StatelessWidget {
-  const SignupScreen({Key? key}) : super(key: key);
+class SignupScreen extends StatefulWidget {
+  const SignupScreen({super.key});
+
+  @override
+  State<SignupScreen> createState() => _SignupScreenState();
+}
+
+class _SignupScreenState extends State<SignupScreen> {
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,23 +72,27 @@ class SignupScreen extends StatelessWidget {
 
                 // Form items
                 CustomTextField(
+                  controller: _nameController,
                   hintText: "Full Name",
                   prefixIcon: Icons.person_outline_rounded,
                 ),
                 const SizedBox(height: 18),
                 CustomTextField(
+                  controller: _emailController,
                   hintText: "Email",
                   prefixIcon: Icons.email_outlined,
                   keyboardType: TextInputType.emailAddress,
                 ),
                 const SizedBox(height: 18),
                 CustomTextField(
+                  controller: _passwordController,
                   hintText: "Password",
                   prefixIcon: Icons.lock_outline_rounded,
                   isPassword: true,
                 ),
                 const SizedBox(height: 18),
                 CustomTextField(
+                  controller: _confirmPasswordController,
                   hintText: "Confirm Password",
                   prefixIcon: Icons.lock_reset_rounded,
                   isPassword: true,
@@ -75,15 +100,46 @@ class SignupScreen extends StatelessWidget {
                 const SizedBox(height: 28),
 
                 // Signup Action
-                CustomButton(
-                  text: "Sign Up",
-                  onTap: () {
-                    // Navigate to primary shell
-                    Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(builder: (_) => const MainAppContainer()),
-                      (route) => false,
+                Consumer<AuthProvider>(
+                  builder: (context, auth, _) {
+                    return CustomButton(
+                      text: auth.isLoading ? "Signing up..." : "Sign Up",
+                      onTap: auth.isLoading
+                          ? null
+                          : () async {
+                              final name = _nameController.text.trim();
+                              final email = _emailController.text.trim();
+                              final password = _passwordController.text;
+                              final confirmPassword = _confirmPasswordController.text;
+
+                              if (name.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Please fill all fields')),
+                                );
+                                return;
+                              }
+
+                              if (password != confirmPassword) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Passwords do not match')),
+                                );
+                                return;
+                              }
+
+                              final success = await auth.signUpWithEmail(email: email, password: password, fullName: name);
+                              if (success && mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Account created! Please log in.')),
+                                );
+                                Navigator.of(context).pop();
+                              } else if (!success && mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(auth.errorMessage ?? 'Signup failed')),
+                                );
+                              }
+                            },
                     );
-                  },
+                  }
                 ),
                 const SizedBox(height: 32),
 
@@ -96,7 +152,7 @@ class SignupScreen extends StatelessWidget {
                       child: Text(
                         "or continue with",
                         style: TextStyle(
-                          color: AppColors.textSecondary(isDark).withOpacity(0.6),
+                          color: AppColors.textSecondary(isDark).withValues(alpha: 0.6),
                           fontSize: 13,
                         ),
                       ),
@@ -107,15 +163,31 @@ class SignupScreen extends StatelessWidget {
                 const SizedBox(height: 24),
 
                 // Social authentications buttons
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _buildSocialButton(Icons.g_mobiledata_rounded, Colors.red, isDark),
-                    const SizedBox(width: 20),
-                    _buildSocialButton(Icons.apple, Colors.white, isDark),
-                    const SizedBox(width: 20),
-                    _buildSocialButton(Icons.facebook, Colors.blue, isDark),
-                  ],
+                Consumer<AuthProvider>(
+                  builder: (context, auth, _) {
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _buildSocialButton(Icons.g_mobiledata_rounded, Colors.red, isDark, onTap: () async {
+                          final success = await auth.signInWithGoogle();
+                          if (success && mounted) {
+                            Navigator.of(context).pushAndRemoveUntil(
+                              MaterialPageRoute(builder: (_) => const MainAppContainer()),
+                              (route) => false,
+                            );
+                          } else if (!success && mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(auth.errorMessage ?? 'Google signup failed')),
+                            );
+                          }
+                        }),
+                        const SizedBox(width: 20),
+                        _buildSocialButton(Icons.apple, Colors.white, isDark, onTap: () {}),
+                        const SizedBox(width: 20),
+                        _buildSocialButton(Icons.facebook, Colors.blue, isDark, onTap: () {}),
+                      ],
+                    );
+                  }
                 ),
                 const SizedBox(height: 36),
 
@@ -152,8 +224,10 @@ class SignupScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSocialButton(IconData icon, Color color, bool isDark) {
-    return Container(
+  Widget _buildSocialButton(IconData icon, Color color, bool isDark, {VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
       height: 52,
       width: 52,
       decoration: BoxDecoration(
@@ -167,6 +241,7 @@ class SignupScreen extends StatelessWidget {
           color: isDark && icon == Icons.apple ? Colors.white : (icon == Icons.apple ? Colors.black : color),
           size: icon == Icons.g_mobiledata_rounded ? 38 : 24,
         ),
+      ),
       ),
     );
   }

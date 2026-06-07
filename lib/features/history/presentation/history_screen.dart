@@ -5,7 +5,7 @@ import 'package:deepfake_ai/core/theme/text_styles.dart';
 import 'package:deepfake_ai/features/status_states/presentation/empty_error_screens.dart';
 
 class HistoryScreen extends StatefulWidget {
-  const HistoryScreen({Key? key}) : super(key: key);
+  const HistoryScreen({super.key});
 
   @override
   State<HistoryScreen> createState() => _HistoryScreenState();
@@ -111,7 +111,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           hintText: "Search history...",
                           prefixIcon: Icon(
                             Icons.search_rounded,
-                            color: AppColors.textSecondary(isDark).withOpacity(0.6),
+                            color: AppColors.textSecondary(isDark).withValues(alpha: 0.6),
                           ),
                           filled: true,
                           fillColor: Colors.transparent,
@@ -205,7 +205,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 ? Container(
                     height: 54,
                     width: 54,
-                    color: AppColors.neonPink.withOpacity(0.1),
+                    color: AppColors.neonPink.withValues(alpha: 0.1),
                     child: const Icon(Icons.audiotrack_rounded, color: AppColors.neonPink, size: 22),
                   )
                 : Image.network(

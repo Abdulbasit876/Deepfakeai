@@ -7,7 +7,7 @@ import 'package:deepfake_ai/shared/widgets/custom_button.dart';
 class ResultScreen extends StatelessWidget {
   final int mediaType; // 0 = Image, 1 = Video, 2 = Audio
 
-  const ResultScreen({Key? key, required this.mediaType}) : super(key: key);
+  const ResultScreen({super.key, required this.mediaType});
 
   @override
   Widget build(BuildContext context) {
@@ -84,7 +84,7 @@ class ResultScreen extends StatelessWidget {
                             ? Container(
                                 height: 64,
                                 width: 64,
-                                color: AppColors.neonPink.withOpacity(0.1),
+                                color: AppColors.neonPink.withValues(alpha: 0.1),
                                 child: const Icon(Icons.audiotrack_rounded, color: AppColors.neonPink, size: 28),
                               )
                             : Image.network(
@@ -109,7 +109,7 @@ class ResultScreen extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
-                                color: AppColors.neonBlue.withOpacity(0.12),
+                                color: AppColors.neonBlue.withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
@@ -147,12 +147,12 @@ class ResultScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
                   decoration: BoxDecoration(
-                    color: AppColors.neonPink.withOpacity(0.04),
+                    color: AppColors.neonPink.withValues(alpha: 0.04),
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: AppColors.neonPink.withOpacity(0.2), width: 1.5),
+                    border: Border.all(color: AppColors.neonPink.withValues(alpha: 0.2), width: 1.5),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.neonPink.withOpacity(0.04),
+                        color: AppColors.neonPink.withValues(alpha: 0.04),
                         blurRadius: 12,
                       ),
                     ],
@@ -363,9 +363,9 @@ class ResultScreen extends StatelessWidget {
               ? Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.12),
+                    color: color.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: color.withOpacity(0.3)),
+                    border: Border.all(color: color.withValues(alpha: 0.3)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,

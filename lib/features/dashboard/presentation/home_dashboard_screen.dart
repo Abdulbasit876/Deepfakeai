@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:deepfake_ai/core/constants/app_colors.dart';
-import 'package:deepfake_ai/core/constants/app_assets.dart';
 import 'package:deepfake_ai/core/theme/text_styles.dart';
 import 'package:deepfake_ai/features/dashboard/presentation/widgets/custom_donut_chart.dart';
 import 'package:deepfake_ai/features/analysis/presentation/processing_screen.dart';
 import 'package:image_picker/image_picker.dart';
 
 class HomeDashboardScreen extends StatefulWidget {
-  const HomeDashboardScreen({Key? key}) : super(key: key);
+  const HomeDashboardScreen({super.key});
 
   @override
   State<HomeDashboardScreen> createState() => _HomeDashboardScreenState();
@@ -61,7 +60,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.neonBlue.withOpacity(0.3),
+                      color: AppColors.neonBlue.withValues(alpha: 0.3),
                       blurRadius: 8,
                       offset: const Offset(0, 3),
                     ),
@@ -114,7 +113,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                 border: Border.all(color: AppColors.cardBorder(isDark), width: 1.5),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
+                    color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
                     blurRadius: 10,
                   ),
                 ],
@@ -125,9 +124,9 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                     height: 64,
                     width: 64,
                     decoration: BoxDecoration(
-                      color: AppColors.neonBlue.withOpacity(0.1),
+                      color: AppColors.neonBlue.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.neonBlue.withOpacity(0.3), width: 1),
+                      border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.3), width: 1),
                     ),
                     child: const Center(
                       child: Icon(
@@ -210,7 +209,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
       child: Container(
         height: 50,
         decoration: BoxDecoration(
-          color: isActive ? AppColors.neonBlue.withOpacity(0.12) : AppColors.cardBg(isDark),
+          color: isActive ? AppColors.neonBlue.withValues(alpha: 0.12) : AppColors.cardBg(isDark),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isActive ? AppColors.neonBlue : AppColors.cardBorder(isDark),
@@ -254,7 +253,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
             height: 40,
             width: 40,
             decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.1),
+              color: iconColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: iconColor, size: 20),

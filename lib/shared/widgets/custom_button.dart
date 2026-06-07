@@ -3,21 +3,21 @@ import 'package:deepfake_ai/core/constants/app_colors.dart';
 
 class CustomButton extends StatefulWidget {
   final String text;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final LinearGradient gradient;
   final double width;
   final double height;
   final bool isSecondary;
 
   const CustomButton({
-    Key? key,
+    super.key,
     required this.text,
     required this.onTap,
     this.gradient = AppColors.primaryGradient,
     this.width = double.infinity,
     this.height = 56,
     this.isSecondary = false,
-  }) : super(key: key);
+  });
 
   @override
   State<CustomButton> createState() => _CustomButtonState();
@@ -52,12 +52,14 @@ class _CustomButtonState extends State<CustomButton> with SingleTickerProviderSt
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GestureDetector(
-      onTapDown: (_) => _controller.forward(),
+      onTapDown: (_) { if (widget.onTap != null) _controller.forward(); },
       onTapUp: (_) {
-        _controller.reverse();
-        widget.onTap();
+        if (widget.onTap != null) {
+          _controller.reverse();
+          widget.onTap!();
+        }
       },
-      onTapCancel: () => _controller.reverse(),
+      onTapCancel: () { if (widget.onTap != null) _controller.reverse(); },
       child: Transform.scale(
         scale: _scale,
         child: Container(
@@ -74,7 +76,7 @@ class _CustomButtonState extends State<CustomButton> with SingleTickerProviderSt
                 ? [] 
                 : [
                     BoxShadow(
-                      color: widget.gradient.colors.first.withOpacity(0.3),
+                      color: widget.gradient.colors.first.withValues(alpha: 0.3),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),

@@ -7,10 +7,10 @@ class CustomDonutChart extends StatelessWidget {
   final double realisticPercentage; // e.g. 38
 
   const CustomDonutChart({
-    Key? key,
+    super.key,
     this.aiPercentage = 62.0,
     this.realisticPercentage = 38.0,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +81,7 @@ class CustomDonutChart extends StatelessWidget {
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: color.withOpacity(0.4),
+                color: color.withValues(alpha: 0.4),
                 blurRadius: 6,
                 spreadRadius: 1,
               ),
@@ -136,7 +136,7 @@ class DonutChartPainter extends CustomPainter {
 
     // Empty background ring
     final bgPaint = Paint()
-      ..color = AppColors.cardBorder(isDark).withOpacity(0.4)
+      ..color = AppColors.cardBorder(isDark).withValues(alpha: 0.4)
       ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke;
     canvas.drawCircle(center, radius, bgPaint);
@@ -147,7 +147,7 @@ class DonutChartPainter extends CustomPainter {
 
     // Start drawing AI Generated Arc (Glow + Sweep)
     final aiPaintGlow = Paint()
-      ..color = AppColors.neonPink.withOpacity(0.3)
+      ..color = AppColors.neonPink.withValues(alpha: 0.3)
       ..strokeWidth = strokeWidth + 4
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke
@@ -167,7 +167,7 @@ class DonutChartPainter extends CustomPainter {
 
     // Start drawing Realistic Arc (Glow + Sweep)
     final realisticPaintGlow = Paint()
-      ..color = AppColors.neonBlue.withOpacity(0.3)
+      ..color = AppColors.neonBlue.withValues(alpha: 0.3)
       ..strokeWidth = strokeWidth + 4
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke

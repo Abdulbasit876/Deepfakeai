@@ -3,12 +3,29 @@ import 'package:deepfake_ai/core/constants/app_colors.dart';
 import 'package:deepfake_ai/core/theme/text_styles.dart';
 import 'package:deepfake_ai/shared/widgets/custom_button.dart';
 import 'package:deepfake_ai/shared/widgets/custom_textfield.dart';
-import 'package:deepfake_ai/features/auth/presentation/signup_screen.dart';
-import 'package:deepfake_ai/features/auth/presentation/forgot_password_screen.dart';
 import 'package:deepfake_ai/main.dart'; // Navigation context
+import 'package:provider/provider.dart';
+import 'package:deepfake_ai/providers/auth_provider.dart';
+import 'package:toastification/toastification.dart';
+import 'package:deepfake_ai/features/auth/presentation/forgot_password_screen.dart';
+import 'package:deepfake_ai/features/auth/presentation/signup_screen.dart';
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
 
-class LoginScreen extends StatelessWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,12 +57,14 @@ class LoginScreen extends StatelessWidget {
 
                 // Form elements
                 CustomTextField(
+                  controller: _emailController,
                   hintText: "Email or Phone",
                   prefixIcon: Icons.email_outlined,
                   keyboardType: TextInputType.emailAddress,
                 ),
                 const SizedBox(height: 20),
                 CustomTextField(
+                  controller: _passwordController,
                   hintText: "Password",
                   prefixIcon: Icons.lock_outline_rounded,
                   isPassword: true,
@@ -74,15 +93,52 @@ class LoginScreen extends StatelessWidget {
                 const SizedBox(height: 32),
 
                 // Login action button
-                CustomButton(
-                  text: "Login",
-                  onTap: () {
-                    // Navigate to primary shell (main App container which mounts bottom nav bar)
-                    Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(builder: (_) => const MainAppContainer()),
-                      (route) => false,
+                Consumer<AuthProvider>(
+                  builder: (context, auth, _) {
+                    return CustomButton(
+                      text: auth.isLoading ? "Logging in..." : "Login",
+                      onTap: auth.isLoading
+                          ? null
+                          : () async {
+                              final email = _emailController.text.trim();
+                              final password = _passwordController.text;
+                              
+                              if (email.isEmpty || password.isEmpty) {
+                                toastification.show(
+                                  context: context,
+                                  title: const Text('Please fill all fields'),
+                                  type: ToastificationType.warning,
+                                  style: ToastificationStyle.flatColored,
+                                  autoCloseDuration: const Duration(seconds: 3),
+                                );
+                                return;
+                              }
+                              
+                              final success = await auth.signInWithEmail(email: email, password: password);
+                              if (success && mounted) {
+                                toastification.show(
+                                  context: context,
+                                  title: const Text('Login Successful'),
+                                  type: ToastificationType.success,
+                                  style: ToastificationStyle.flatColored,
+                                  autoCloseDuration: const Duration(seconds: 2),
+                                );
+                                Navigator.of(context).pushAndRemoveUntil(
+                                  MaterialPageRoute(builder: (_) => const MainAppContainer()),
+                                  (route) => false,
+                                );
+                              } else if (!success && mounted) {
+                                toastification.show(
+                                  context: context,
+                                  title: Text(auth.errorMessage ?? 'Login failed'),
+                                  type: ToastificationType.error,
+                                  style: ToastificationStyle.flatColored,
+                                  autoCloseDuration: const Duration(seconds: 4),
+                                );
+                              }
+                            },
                     );
-                  },
+                  }
                 ),
                 const SizedBox(height: 36),
 
@@ -95,7 +151,7 @@ class LoginScreen extends StatelessWidget {
                       child: Text(
                         "or continue with",
                         style: TextStyle(
-                          color: AppColors.textSecondary(isDark).withOpacity(0.6),
+                          color: AppColors.textSecondary(isDark).withValues(alpha: 0.6),
                           fontSize: 13,
                         ),
                       ),
@@ -106,15 +162,44 @@ class LoginScreen extends StatelessWidget {
                 const SizedBox(height: 32),
 
                 // Social authentications buttons
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _buildSocialButton(Icons.g_mobiledata_rounded, Colors.red, isDark),
-                    const SizedBox(width: 24),
-                    _buildSocialButton(Icons.apple, Colors.white, isDark),
-                    const SizedBox(width: 24),
-                    _buildSocialButton(Icons.facebook, Colors.blue, isDark),
-                  ],
+                Consumer<AuthProvider>(
+                  builder: (context, auth, _) {
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _buildSocialButton(Icons.g_mobiledata_rounded, Colors.red, isDark, onTap: () async {
+                          final success = await auth.signInWithGoogle();
+                          if (success && mounted) {
+                            toastification.show(
+                              context: context,
+                              title: const Text('Login Successful'),
+                              type: ToastificationType.success,
+                              style: ToastificationStyle.flatColored,
+                              autoCloseDuration: const Duration(seconds: 2),
+                            );
+                            // Supabase oauth might redirect to browser and then back to app
+                            // Listen to auth state changes from auth provider in the app level, but for now we push:
+                            Navigator.of(context).pushAndRemoveUntil(
+                              MaterialPageRoute(builder: (_) => const MainAppContainer()),
+                              (route) => false,
+                            );
+                          } else if (!success && mounted) {
+                            toastification.show(
+                              context: context,
+                              title: Text(auth.errorMessage ?? 'Google login failed'),
+                              type: ToastificationType.error,
+                              style: ToastificationStyle.flatColored,
+                              autoCloseDuration: const Duration(seconds: 4),
+                            );
+                          }
+                        }),
+                        const SizedBox(width: 24),
+                        _buildSocialButton(Icons.apple, Colors.white, isDark, onTap: () {}),
+                        const SizedBox(width: 24),
+                        _buildSocialButton(Icons.facebook, Colors.blue, isDark, onTap: () {}),
+                      ],
+                    );
+                  }
                 ),
                 const SizedBox(height: 48),
 
@@ -155,8 +240,10 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSocialButton(IconData icon, Color color, bool isDark) {
-    return Container(
+  Widget _buildSocialButton(IconData icon, Color color, bool isDark, {VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
       height: 56,
       width: 56,
       decoration: BoxDecoration(
@@ -170,6 +257,7 @@ class LoginScreen extends StatelessWidget {
           color: isDark && icon == Icons.apple ? Colors.white : (icon == Icons.apple ? Colors.black : color),
           size: icon == Icons.g_mobiledata_rounded ? 42 : 26,
         ),
+      ),
       ),
     );
   }

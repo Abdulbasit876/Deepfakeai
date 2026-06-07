@@ -5,7 +5,7 @@ import 'package:deepfake_ai/shared/widgets/custom_button.dart';
 import 'package:deepfake_ai/shared/widgets/custom_textfield.dart';
 
 class ForgotPasswordScreen extends StatelessWidget {
-  const ForgotPasswordScreen({Key? key}) : super(key: key);
+  const ForgotPasswordScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -54,12 +54,12 @@ class ForgotPasswordScreen extends StatelessWidget {
                     height: 120,
                     width: 120,
                     decoration: BoxDecoration(
-                      color: AppColors.neonPink.withOpacity(0.08),
+                      color: AppColors.neonPink.withValues(alpha: 0.08),
                       shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.neonPink.withOpacity(0.3), width: 1.5),
+                      border: Border.all(color: AppColors.neonPink.withValues(alpha: 0.3), width: 1.5),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.neonPink.withOpacity(0.15),
+                          color: AppColors.neonPink.withValues(alpha: 0.15),
                           blurRadius: 20,
                           spreadRadius: 2,
                         ),

@@ -6,10 +6,10 @@ class CustomBottomNavBar extends StatelessWidget {
   final ValueChanged<int> onTap;
 
   const CustomBottomNavBar({
-    Key? key,
+    super.key,
     required this.currentIndex,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -19,15 +19,15 @@ class CustomBottomNavBar extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
       height: 72,
       decoration: BoxDecoration(
-        color: AppColors.cardBg(isDark).withOpacity(0.92),
+        color: AppColors.cardBg(isDark).withValues(alpha: 0.92),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: AppColors.cardBorder(isDark).withOpacity(0.8),
+          color: AppColors.cardBorder(isDark).withValues(alpha: 0.8),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.4 : 0.1),
+            color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.1),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -50,7 +50,7 @@ class CustomBottomNavBar extends StatelessWidget {
                 gradient: AppColors.primaryGradient,
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.neonBlue.withOpacity(0.4),
+                    color: AppColors.neonBlue.withValues(alpha: 0.4),
                     blurRadius: 12,
                     spreadRadius: 2,
                     offset: const Offset(0, 4),
@@ -76,7 +76,7 @@ class CustomBottomNavBar extends StatelessWidget {
     // Note: Tab index 2 is the middle action button. The actual page index is mapped accordingly
     final isSelected = currentIndex == index;
     final activeColor = AppColors.neonBlue;
-    final inactiveColor = AppColors.textSecondary(isDark).withOpacity(0.6);
+    final inactiveColor = AppColors.textSecondary(isDark).withValues(alpha: 0.6);
 
     return InkWell(
       onTap: () => onTap(index),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:deepfake_ai/core/theme/app_theme.dart';
 import 'package:deepfake_ai/core/utils/size_config.dart';
 import 'package:deepfake_ai/shared/widgets/bottom_nav_bar.dart';
@@ -7,17 +8,30 @@ import 'package:deepfake_ai/features/dashboard/presentation/home_dashboard_scree
 import 'package:deepfake_ai/features/history/presentation/history_screen.dart';
 import 'package:deepfake_ai/features/notifications/presentation/notifications_screen.dart';
 import 'package:deepfake_ai/features/profile/presentation/profile_screen.dart';
+import 'package:deepfake_ai/services/supabase_service.dart';
+import 'package:deepfake_ai/providers/auth_provider.dart';
 
 // Global ValueNotifier to listen and switch themes (Dark/Light) dynamically in the preview app
 final ValueNotifier<ThemeMode> themeModeNotifier = ValueNotifier<ThemeMode>(ThemeMode.dark);
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const DeepFakeAIApp());
+
+  // Initialize Supabase before running the app
+  await SupabaseService.initialize();
+
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider<AuthProvider>(create: (_) => AuthProvider()),
+      ],
+      child: const DeepFakeAIApp(),
+    ),
+  );
 }
 
 class DeepFakeAIApp extends StatelessWidget {
-  const DeepFakeAIApp({Key? key}) : super(key: key);
+  const DeepFakeAIApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +54,7 @@ class DeepFakeAIApp extends StatelessWidget {
 
 // Wrapper to initialize responsiveness SizeConfig
 class AppInitializationWrapper extends StatelessWidget {
-  const AppInitializationWrapper({Key? key}) : super(key: key);
+  const AppInitializationWrapper({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +65,7 @@ class AppInitializationWrapper extends StatelessWidget {
 
 // Main Scaffold container holding the interactive pages and overlapping bottom nav bar
 class MainAppContainer extends StatefulWidget {
-  const MainAppContainer({Key? key}) : super(key: key);
+  const MainAppContainer({super.key});
 
   @override
   State<MainAppContainer> createState() => _MainAppContainerState();
