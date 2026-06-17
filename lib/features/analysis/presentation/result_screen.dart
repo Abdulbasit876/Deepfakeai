@@ -1,22 +1,192 @@
 import 'package:flutter/material.dart';
 import 'package:deepfake_ai/core/constants/app_colors.dart';
-import 'package:deepfake_ai/core/constants/app_assets.dart';
 import 'package:deepfake_ai/core/theme/text_styles.dart';
 import 'package:deepfake_ai/shared/widgets/custom_button.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:pdf/widgets.dart' as pw;
 
 class ResultScreen extends StatelessWidget {
-  final int mediaType; // 0 = Image, 1 = Video, 2 = Audio
+  Future<void> _saveToDatabase(BuildContext context) async {
+  try {
+    final supabase = Supabase.instance.client;
+    final user = supabase.auth.currentUser;
 
-  const ResultScreen({super.key, required this.mediaType});
+    if (user == null) {
+      throw "User not logged in!";
+    }
+
+    // DB Schema ke mutabiq keys ko update kar diya hai
+    await supabase.from('detection_reports').insert({
+      'user_id': user.id, 
+      // 'file_name' aapke table mein nahi hai, isliye hata diya
+      'media_type': mediaType.toString(), // Database mein varchar hai
+      'media_url': _mediaUrl ?? '',       // Column name: 'media_url'
+      'ai_percentage': _aiPercentage,     // Column name: 'ai_percentage'
+      'human_percentage': _humanPercentage, // Column name: 'human_percentage'
+      'detected_source': _detectedSource,   // Column name: 'detected_source'
+      'created_at': DateTime.now().toIso8601String(),
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Scan successfully saved to History!")),
+    );
+  } catch (e) {
+    print("Database Error: $e"); // Console mein check karein agar phir bhi error aaye
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Error: $e")),
+    );
+  }
+}
+  Future<void> _downloadReport(BuildContext context) async {
+  try {
+    await Permission.storage.request();
+
+    final pdf = pw.Document();
+
+    final mediaLabel =
+        mediaType == 0 ? "Image" : (mediaType == 1 ? "Video" : "Audio");
+
+    pdf.addPage(
+      pw.MultiPage(
+        build: (context) => [
+          pw.Header(
+            level: 0,
+            child: pw.Text("AI Detection Report"),
+          ),
+
+          pw.SizedBox(height: 10),
+
+          pw.Text("Verdict: $_verdict"),
+          pw.Text("Risk Level: $_riskLevel"),
+
+          pw.SizedBox(height: 10),
+
+          pw.Text(
+            "AI Generated: ${_aiPercentage.toStringAsFixed(1)}%",
+          ),
+
+          pw.Text(
+            "Human Percentage: ${_humanPercentage.toStringAsFixed(1)}%",
+          ),
+
+          pw.Text(
+            "Detected Source: $_detectedSource",
+          ),
+
+          pw.SizedBox(height: 15),
+
+          pw.Text(
+            "AI Explanation",
+            style: pw.TextStyle(
+              fontWeight: pw.FontWeight.bold,
+            ),
+          ),
+
+          pw.SizedBox(height: 5),
+
+          pw.Text(
+            _getExplanation(mediaLabel),
+          ),
+
+          pw.SizedBox(height: 20),
+
+          pw.Text(
+            "Generated On: ${DateTime.now()}",
+          ),
+        ],
+      ),
+    );
+
+    Directory downloadDir;
+
+    if (Platform.isAndroid) {
+      downloadDir = Directory('/storage/emulated/0/Download');
+    } else {
+      downloadDir = await getApplicationDocumentsDirectory();
+    }
+
+    if (!await downloadDir.exists()) {
+      await downloadDir.create(recursive: true);
+    }
+
+    final file = File(
+      "${downloadDir.path}/AI_Report_${DateTime.now().millisecondsSinceEpoch}.pdf",
+    );
+
+    await file.writeAsBytes(await pdf.save());
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("PDF Report downloaded successfully!"),
+      ),
+    );
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Error: $e"),
+      ),
+    );
+  }
+}
+  final int mediaType; // 0 = Image, 1 = Video, 2 = Audio
+  final Map<String, dynamic> resultData;
+
+  const ResultScreen({
+    super.key,
+    required this.mediaType,
+    required this.resultData,
+  });
+
+  // ✅ Real data getters
+  double get _aiPercentage => (resultData['ai_percentage'] ?? 0.0).toDouble();
+  double get _humanPercentage => (resultData['human_percentage'] ?? 0.0).toDouble();
+  String get _detectedSource => resultData['detected_source'] ?? 'Unknown';
+  String? get _mediaUrl => resultData['media_url'] as String?;
+
+  String get _verdict {
+    if (_aiPercentage >= 70) return "Likely AI Generated";
+    if (_aiPercentage >= 40) return "Possibly AI Generated";
+    return "Likely Authentic";
+  }
+
+  String get _riskLevel {
+    if (_aiPercentage >= 70) return "High Risk";
+    if (_aiPercentage >= 40) return "Medium Risk";
+    return "Low Risk";
+  }
+
+  Color get _verdictColor {
+    if (_aiPercentage >= 70) return AppColors.neonPink;
+    if (_aiPercentage >= 40) return Colors.orange;
+    return AppColors.successGreen;
+  }
+
+  String _getExplanation(String mediaLabel) {
+    if (_aiPercentage >= 70) {
+      return "Our AI scanned multiple complex patterns across the uploaded $mediaLabel file. "
+          "We detected synthetic texture inconsistencies and structural lighting imbalances "
+          "that strongly deviate from authentic patterns, suggesting a ${_aiPercentage.toStringAsFixed(1)}% likelihood of deepfake alteration"
+          "${_detectedSource != 'Unknown' ? ' (Source: $_detectedSource)' : ''}.";
+    } else if (_aiPercentage >= 40) {
+      return "Our AI found some patterns in the uploaded $mediaLabel that may suggest partial AI involvement. "
+          "The analysis shows ${_aiPercentage.toStringAsFixed(1)}% AI-generated likelihood, "
+          "which falls in an ambiguous range. Further verification is recommended.";
+    } else {
+      return "Our AI analyzed the uploaded $mediaLabel and found no significant signs of artificial generation. "
+          "The content appears authentic with only ${_aiPercentage.toStringAsFixed(1)}% AI-generated likelihood.";
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
-    final fileName = mediaType == 0 
-        ? "portrait_photo.jpg" 
+
+    final fileName = mediaType == 0
+        ? "portrait_photo.jpg"
         : (mediaType == 1 ? "interview_clip.mp4" : "voice_note.wav");
-    
     final fileSize = mediaType == 0 ? "2.4 MB" : (mediaType == 1 ? "18.6 MB" : "1.2 MB");
     final fileDate = "12 May 2026";
     final mediaLabel = mediaType == 0 ? "Image" : (mediaType == 1 ? "Video" : "Audio");
@@ -77,7 +247,7 @@ class ResultScreen extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      // Circular / Rounded Media preview thumbnail
+                      // ✅ Real image from backend media_url
                       ClipRRect(
                         borderRadius: BorderRadius.circular(14),
                         child: mediaType == 2
@@ -87,18 +257,25 @@ class ResultScreen extends StatelessWidget {
                                 color: AppColors.neonPink.withValues(alpha: 0.1),
                                 child: const Icon(Icons.audiotrack_rounded, color: AppColors.neonPink, size: 28),
                               )
-                            : Image.network(
-                                mediaType == 0 ? AppAssets.mediaFacePreview : AppAssets.mediaPreviewVideo,
-                                height: 64,
-                                width: 64,
-                                fit: BoxFit.cover,
-                                errorBuilder: (c, o, s) => Container(
-                                  height: 64,
-                                  width: 64,
-                                  color: AppColors.neonBlue,
-                                  child: const Icon(Icons.image, color: Colors.white),
-                                ),
-                              ),
+                            : (_mediaUrl != null
+                                ? Image.network(
+                                    _mediaUrl!,
+                                    height: 64,
+                                    width: 64,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (c, o, s) => Container(
+                                      height: 64,
+                                      width: 64,
+                                      color: AppColors.neonBlue,
+                                      child: const Icon(Icons.image, color: Colors.white),
+                                    ),
+                                  )
+                                : Container(
+                                    height: 64,
+                                    width: 64,
+                                    color: AppColors.neonBlue,
+                                    child: const Icon(Icons.image, color: Colors.white),
+                                  )),
                       ),
                       const SizedBox(width: 16),
                       // Meta details
@@ -143,27 +320,27 @@ class ResultScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 28),
 
-                // High-fidelity Side-by-side color-coded percentage metrics bars
+                // ✅ Verdict card — real data
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
                   decoration: BoxDecoration(
-                    color: AppColors.neonPink.withValues(alpha: 0.04),
+                    color: _verdictColor.withValues(alpha: 0.04),
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: AppColors.neonPink.withValues(alpha: 0.2), width: 1.5),
+                    border: Border.all(color: _verdictColor.withValues(alpha: 0.2), width: 1.5),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.neonPink.withValues(alpha: 0.04),
+                        color: _verdictColor.withValues(alpha: 0.04),
                         blurRadius: 12,
                       ),
                     ],
                   ),
                   child: Column(
                     children: [
-                      const Center(
+                      Center(
                         child: Text(
-                          "Likely AI Generated",
+                          _verdict, // ✅ real verdict
                           style: TextStyle(
-                            color: AppColors.neonPink,
+                            color: _verdictColor,
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 0.5,
@@ -171,17 +348,17 @@ class ResultScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 24),
-                      
+
                       // Duel Percentage Gauges Side-by-Side
                       Row(
                         children: [
                           Expanded(
                             child: Column(
                               children: [
-                                const Text(
-                                  "62%",
+                                Text(
+                                  "${_aiPercentage.toStringAsFixed(1)}%", // ✅ real
                                   style: TextStyle(
-                                    color: AppColors.neonPink,
+                                    color: _verdictColor,
                                     fontSize: 32,
                                     fontWeight: FontWeight.w900,
                                   ),
@@ -211,9 +388,9 @@ class ResultScreen extends StatelessWidget {
                           Expanded(
                             child: Column(
                               children: [
-                                const Text(
-                                  "38%",
-                                  style: TextStyle(
+                                Text(
+                                  "${_humanPercentage.toStringAsFixed(1)}%", // ✅ real
+                                  style: const TextStyle(
                                     color: AppColors.successGreen,
                                     fontSize: 32,
                                     fontWeight: FontWeight.w900,
@@ -244,14 +421,14 @@ class ResultScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
 
-                // Explicit Risk Level and Confidence telemetry readouts
+                // ✅ Telemetry cards — real data
                 Row(
                   children: [
                     Expanded(
                       child: _buildTelemetryCard(
                         "Risk Level",
-                        "High Risk",
-                        AppColors.neonPink,
+                        _riskLevel, // ✅ real
+                        _verdictColor, // ✅ real color
                         true,
                         isDark,
                       ),
@@ -260,10 +437,11 @@ class ResultScreen extends StatelessWidget {
                     Expanded(
                       child: _buildTelemetryCard(
                         "Confidence Score",
-                        "89%",
+                        "${_aiPercentage.toStringAsFixed(1)}%", // ✅ real
                         AppColors.neonBlue,
                         false,
                         isDark,
+                        widthFactor: _aiPercentage / 100, // ✅ real bar
                       ),
                     ),
                   ],
@@ -284,9 +462,7 @@ class ResultScreen extends StatelessWidget {
                     border: Border.all(color: AppColors.cardBorder(isDark)),
                   ),
                   child: Text(
-                    "Our AI scanned multiple complex patterns across the uploaded $mediaLabel file. "
-                    "We detected synthetic texture inconsistencies and structural lighting imbalances "
-                    "that strongly deviate from authentic patterns, suggesting a 62% likelihood of deepfake alteration.",
+                    _getExplanation(mediaLabel), // ✅ real explanation
                     style: TextStyle(
                       color: AppColors.textSecondary(isDark),
                       fontSize: 14,
@@ -303,14 +479,7 @@ class ResultScreen extends StatelessWidget {
                       flex: 2,
                       child: CustomButton(
                         text: "Download Report",
-                        onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("PDF Report downloaded successfully!"),
-                              backgroundColor: AppColors.successGreen,
-                            ),
-                          );
-                        },
+                        onTap: () => _downloadReport(context),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -319,12 +488,7 @@ class ResultScreen extends StatelessWidget {
                         text: "Save",
                         isSecondary: true,
                         onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Scan successfully saved to History!"),
-                              backgroundColor: AppColors.neonBlue,
-                            ),
-                          );
+                          _saveToDatabase(context);
                         },
                       ),
                     ),
@@ -339,7 +503,7 @@ class ResultScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTelemetryCard(String label, String value, Color color, bool isRisk, bool isDark) {
+  Widget _buildTelemetryCard(String label, String value, Color color, bool isRisk, bool isDark, {double widthFactor = 0.89}) {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -359,7 +523,7 @@ class ResultScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          isRisk 
+          isRisk
               ? Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
@@ -409,7 +573,7 @@ class ResultScreen extends StatelessWidget {
                       child: Stack(
                         children: [
                           FractionallySizedBox(
-                            widthFactor: 0.89,
+                            widthFactor: widthFactor.clamp(0.0, 1.0), // ✅ real
                             child: Container(
                               decoration: BoxDecoration(
                                 color: color,

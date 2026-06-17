@@ -323,7 +323,7 @@ class AuthProvider extends ChangeNotifier {
   void _printBearerToken() {
     final String? accessToken = _client.auth.currentSession?.accessToken;
     if (accessToken != null) {
-      debugPrint('Bearer $accessToken');
+      print('is here $accessToken');
     }
   }
 

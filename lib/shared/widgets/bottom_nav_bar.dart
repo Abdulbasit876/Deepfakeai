@@ -38,42 +38,14 @@ class CustomBottomNavBar extends StatelessWidget {
         children: [
           _buildNavItem(context, 0, Icons.home_rounded, "Home", isDark),
           _buildNavItem(context, 1, Icons.history_rounded, "History", isDark),
-          
-          // Central Floating Scan Action
-          GestureDetector(
-            onTap: () => onTap(2), // 2 is center upload tab/action
-            child: Container(
-              height: 54,
-              width: 54,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: AppColors.primaryGradient,
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.neonBlue.withValues(alpha: 0.4),
-                    blurRadius: 12,
-                    spreadRadius: 2,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.add_rounded,
-                color: Colors.white,
-                size: 28,
-              ),
-            ),
-          ),
-
-          _buildNavItem(context, 3, Icons.notifications_rounded, "Alerts", isDark),
-          _buildNavItem(context, 4, Icons.person_rounded, "Profile", isDark),
+          _buildNavItem(context, 2, Icons.notifications_rounded, "Alerts", isDark),
+          _buildNavItem(context, 3, Icons.person_rounded, "Profile", isDark),
         ],
       ),
     );
   }
 
   Widget _buildNavItem(BuildContext context, int index, IconData icon, String label, bool isDark) {
-    // Note: Tab index 2 is the middle action button. The actual page index is mapped accordingly
     final isSelected = currentIndex == index;
     final activeColor = AppColors.neonBlue;
     final inactiveColor = AppColors.textSecondary(isDark).withValues(alpha: 0.6);

@@ -83,8 +83,6 @@ class _MainAppContainerState extends State<MainAppContainer> {
     _pages = [
       const HomeDashboardScreen(),
       const HistoryScreen(),
-      // Middle tab (2) is a custom trigger action, we map its view as Home too
-      const HomeDashboardScreen(),
       const NotificationsScreen(),
       const ProfileScreen(),
     ];
@@ -92,18 +90,7 @@ class _MainAppContainerState extends State<MainAppContainer> {
 
   void _onTabTapped(int index) {
     setState(() {
-      if (index == 2) {
-        // Central Quick Upload Scan Action: focuses Home tab (0) and triggers upload
-        _currentIndex = 0;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Quick Scan triggered! Tap 'Upload & Analyze' to start scanning."),
-            duration: Duration(seconds: 2),
-          ),
-        );
-      } else {
-        _currentIndex = index;
-      }
+      _currentIndex = index;
     });
   }
 

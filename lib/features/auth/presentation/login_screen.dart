@@ -11,7 +11,6 @@ import 'package:deepfake_ai/features/auth/presentation/forgot_password_screen.da
 import 'package:deepfake_ai/features/auth/presentation/signup_screen.dart';
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
-
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
