@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:deepfake_ai/core/constants/app_colors.dart';
 import 'package:deepfake_ai/core/constants/app_assets.dart';
 import 'package:deepfake_ai/core/theme/text_styles.dart';
@@ -12,6 +13,11 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    // Supabase se current user fetch kiya
+    final user = Supabase.instance.client.auth.currentUser;
+    final userName = user?.userMetadata?['full_name'] ?? "Alex Johnson";
+    final userEmail = user?.email ?? "alex.johnson@gmail.com";
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 110), // padding for bottom nav
@@ -67,7 +73,7 @@ class ProfileScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Alex Johnson",
+                        userName, // Dynamic Name
                         style: TextStyle(
                           color: AppColors.textPrimary(isDark),
                           fontSize: 18,
@@ -76,7 +82,7 @@ class ProfileScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        "alex.johnson@gmail.com",
+                        userEmail, // Dynamic Email
                         style: AppTextStyles.getBodySmall(isDark),
                       ),
                       const SizedBox(height: 8),
@@ -170,12 +176,16 @@ class ProfileScreen extends StatelessWidget {
 
           // Logout Button
           GestureDetector(
-            onTap: () {
+            onTap: () async {
+              // Supabase Logout
+              await Supabase.instance.client.auth.signOut();
               // Navigate to login screen and clear navigation stack
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (_) => LoginScreen()),
-                (route) => false,
-              );
+              if (context.mounted) {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => LoginScreen()),
+                  (route) => false,
+                );
+              }
             },
             child: Container(
               height: 56,

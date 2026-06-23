@@ -46,7 +46,7 @@ class _ProcessingScreenState extends State<ProcessingScreen>
       return "http://localhost:5000/api/v1/detect";
     } else {
       // Android emulator ke liye 10.0.2.2, real device ke liye apna IP
-      return "http://192.168.137.84:5000/api/v1/detect";
+      return "http://192.168.100.29:5000/api/v1/detect";
     }
   }
 
